@@ -50,14 +50,18 @@ const server = new ApolloServer({
 
 await server.start()
 
+const whitlist = ['http://localhost:4000', 'https://1route.aguiarveliz.com', 'http://localhost:3000']
+
 app.use('/api/graphql', cors({
-  origin: "*",
-  credentials: false
+  origin: whitlist,
+  credentials: true
 }), express.json(), expressMiddleware(server, {
   context: async ({ req, res }) => {
 
     const auth = req ? req.headers.authorization : null
     const reqCookies = req.headers.cookie
+
+    // console.log(req)
 
     if (auth && auth.toLowerCase().startsWith('bearer ')) {
 

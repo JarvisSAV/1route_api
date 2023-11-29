@@ -20,9 +20,9 @@ export const resolvers = {
     },
     paquetesXchofer: async (parent, args, context) => {
       const user = context.currentUser
-      // if (!user) {
-      //   throw new Error('Authentication required')
-      // }
+      if (!user) {
+        throw new Error('Authentication required')
+      }
       const ruta = await Ruta.find({
         fecha: {
           $gte: new Date('2023-11-20'),
@@ -40,33 +40,33 @@ export const resolvers = {
     },
     listChoferes: async (parent, args, context) => {
       const user = context.currentUser
-      // if (!user || user.tipo !== TIPO_USER.ADMIN) {
-      //   throw new Error('Authentication required')
-      // }
+      if (!user || user.tipo !== TIPO_USER.ADMIN) {
+        throw new Error('Authentication required')
+      }
       const choferes = await User.find({ tipo: TIPO_USER.CHOFER })
       return choferes
     },
     listUnidades: async (parent, args, context) => {
       const user = context.currentUser
-      // if (!user || user.tipo !== TIPO_USER.ADMIN) {
-      //   throw new Error('Authentication required')
-      // }
+      if (!user || user.tipo !== TIPO_USER.ADMIN) {
+        throw new Error('Authentication required')
+      }
       const unidades = await Unidad.find({ estado: 'DISPONIBLE' })
       return unidades
     },
     listRutas: async (parent, args, context) => {
       const user = context.currentUser
-      // if (!user || user.tipo !== TIPO_USER.ADMIN) {
-      //   throw new Error('Authentication required')
-      // }
+      if (!user || user.tipo !== TIPO_USER.ADMIN) {
+        throw new Error('Authentication required')
+      }
       const rutas = await Ruta.find()
       return rutas
     },
     allPaquetes: async (parent, args, context) => {
       const user = context.currentUser
-      // if (!user || user.tipo !== TIPO_USER.ADMIN) {
-      //   throw new Error('Authentication required')
-      // }
+      if (!user || user.tipo !== TIPO_USER.ADMIN) {
+        throw new Error('Authentication required')
+      }
       const paquetes = await Paquete.find()
       return paquetes
     }
@@ -87,9 +87,9 @@ export const resolvers = {
     createPaquete: async (parent, args, context) => {
       // console.log('addPaquete')
       const user = context.currentUser
-      // if (!user) {
-      //   throw new Error('Authentication required')
-      // }
+      if (!user) {
+        throw new Error('Authentication required')
+      }
       const paquete = new Paquete({ ...args, estado: 'PENDIENTE' })
 
       return paquete.save()
@@ -112,9 +112,10 @@ export const resolvers = {
 
       const cookies = cookie.serialize('token', jwt.sign(userForToken, process.env.JWT_SECRET), {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: true,
         path: '/',
         maxAge: 60 * 60 * 24 * 7, // 1 week,
+        sameSite: 'none'
       })
 
       context.res.setHeader('Set-Cookie', cookies)
