@@ -109,5 +109,6 @@ export const typeDefs = `#graphql
 
   type Subscription {
     numberIncremented: Int
+    paqueteUpdated: Paquete
   }
 `

@@ -96,7 +96,7 @@ export const resolvers = {
     },
     loginAdmin: async (parent, args, context) => {
       const user = await User.findOne({ dni: args.dni })
-      console.log('login')
+
       if (!user || !bcrypt.compareSync(args.password, user.password) || user.tipo !== TIPO_USER.ADMIN) {
         throw new Error('Wrong credentials', {
           extensions: {
@@ -110,43 +110,41 @@ export const resolvers = {
         dni: user.dni
       }
 
-      // const cookies = cookie.serialize('token', jwt.sign(userForToken, process.env.JWT_SECRET), {
-      //   httpOnly: true,
-      //   secure: process.env.NODE_ENV === 'production',
-      //   path: '/',
-      //   maxAge: 60 * 60 * 24 * 7, // 1 week,
-      // })
+      const cookies = cookie.serialize('token', jwt.sign(userForToken, process.env.JWT_SECRET), {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        path: '/',
+        maxAge: 60 * 60 * 24 * 7, // 1 week,
+      })
 
-      // context.res.setHeader('Set-Cookie', cookies)
+      context.res.setHeader('Set-Cookie', cookies)
 
       return {
         value: jwt.sign(userForToken, process.env.JWT_SECRET)
       }
     },
 
-    login: async (e) => {
-      console.log('login', e)
-      // const user = await User.findOne({ dni: args.dni })
-      // if (!user || !bcrypt.compareSync(args.password, user.password)) {
-      //   throw new Error('Wrong credentials', {
-      //     extensions: {
-      //       code: 'UNAUTHENTICATED'
-      //     }
-      //   })
-      // }
+    login: async (parent, args, context) => {
+      const user = await User.findOne({ dni: args.dni })
+      // console.log('login')
+      if (!user || !bcrypt.compareSync(args.password, user.password)) {
+        throw new Error('Wrong credentials', {
+          extensions: {
+            code: 'UNAUTHENTICATED'
+          }
+        })
+      }
 
-      // const userForToken = {
-      //   id: user._id,
-      //   dni: user.dni
-      // }
+      const userForToken = {
+        id: user._id,
+        dni: user.dni
+      }
 
-      // return {
-      //   value: jwt.sign(userForToken, process.env.JWT_SECRET)
-      // }
       return {
-        value: 'jwt.sign(userForToken, process.env.JWT_SECRET)'
+        value: jwt.sign(userForToken, process.env.JWT_SECRET)
       }
     },
+
     paqueteid: async (parent, args, context) => {
       // console.log('paqueteid')
       const user = context.currentUser
@@ -202,6 +200,9 @@ export const resolvers = {
   Subscription: {
     numberIncremented: {
       subscribe: () => pubsub.asyncIterator(['NUMBER_INCREMENTED']),
+    },
+    paqueteUpdated: {
+      subscribe: () => pubsub.asyncIterator(['PAQUETE_UPDATED']),
     },
   },
 }
