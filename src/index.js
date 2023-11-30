@@ -6,16 +6,18 @@ import { createServer } from 'http'
 import { useServer } from 'graphql-ws/lib/use/ws'
 import { schema } from './apollo/apollo.js'
 import { User } from './models/User.js'
+import cookieParser from 'cookie-parser'
+import jwt from 'jsonwebtoken'
 import express from 'express'
 import dotenv from 'dotenv'
 import cors from 'cors'
-import jwt from 'jsonwebtoken'
 
 dotenv.config()
 
 const PORT = process.env.PORT || 3000
 
 const app = express()
+app.use(cookieParser())
 const httpServer = createServer(app)
 
 const wsServer = new WebSocketServer({
@@ -26,8 +28,8 @@ const wsServer = new WebSocketServer({
 const serverCleanup = useServer({
   schema,
   context: async (ctx, msg, args) => {
-    
-    return {ctx, msg, args};
+
+    return { ctx, msg, args };
   },
 }, wsServer)
 
@@ -50,18 +52,23 @@ const server = new ApolloServer({
 
 await server.start()
 
-const whitlist = ['http://localhost:4000', 'https://1route.aguiarveliz.com', 'http://localhost:3000']
+const whitlist = [
+  'http://localhost:4000',
+  'https://1route.aguiarveliz.com',
+  'http://localhost:3000',
+  'http://192.168.1.69:4000',
+]
 
 app.use('/api/graphql', cors({
   origin: whitlist,
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'OPTIONS', 'HEAD', 'PUT', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Set-Cookie', 'Cookie', 'Origin', 'Accept', 'X-Requested-With', 'Access-Control-Allow-Origin', 'Access-Control-Allow-Credentials', 'Access-Control-Allow-Headers', 'Access-Control-Allow-Methods', 'Access-Control-Max-Age', 'Access-Control-Expose-Headers', 'Access-Control-Request-Headers', 'Access-Control-Request-Method'],
 }), express.json(), expressMiddleware(server, {
   context: async ({ req, res }) => {
 
     const auth = req ? req.headers.authorization : null
     const reqCookies = req.headers.cookie
-
-    // console.log(req)
 
     if (auth && auth.toLowerCase().startsWith('bearer ')) {
 
@@ -78,6 +85,7 @@ app.use('/api/graphql', cors({
       const decodedToken = jwt.verify(
         reqCookies.substring(6), process.env.JWT_SECRET
       )
+
       const currentUser = await User.findById(decodedToken.id)
 
       return { currentUser, req, res }
