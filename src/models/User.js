@@ -38,6 +38,11 @@ const schema = mongoose.Schema({
     required: true,
     trim: true
   },
+  ubicacion: {
+    type: Object,
+    required: true,
+    trim: true
+  }
 }, { timestamps: true })
 
 let User

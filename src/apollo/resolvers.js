@@ -9,6 +9,14 @@ const pubsub = new PubSub()
 
 let currentNumber = 0;
 
+const nombres = [
+  'Liam', 'Olivia', 'Noah', 'Emma', 'Sophia', 'Jackson', 'Ava', 'Oliver', 'Isabella', 'Lucas',
+  'Amelia', 'Henry', 'Mia', 'Ethan', 'Harper', 'Evelyn', 'Benjamin', 'Aria', 'Alexander', 'Scarlett',
+  'James', 'Abigail', 'Michael', 'Luna', 'Ella', 'Grayson', 'Avery', 'Levi', 'Ellie', 'Daniel',
+  'Aubrey', 'Logan', 'Grace', 'Mateo', 'Chloe', 'Jack', 'Sofia', 'Carter', 'Riley', 'Henry', 'Zoe',
+  'Owen', 'Hannah', 'Wyatt', 'Victoria', 'Muhammad', 'Madison', 'Sebastian', 'Eleanor', 'Camila', 'Julian', 'Silvino'
+]
+
 export const resolvers = {
   Query: {
     currentNumber() {
@@ -69,7 +77,7 @@ export const resolvers = {
       }
       const paquetes = await Paquete.find()
       return paquetes
-    }
+    },
   },
   Mutation: {
     incrementNumber() {
@@ -163,12 +171,31 @@ export const resolvers = {
       }
       // const paquete = await Paquete.findByIdAndUpdate(args.id, { estado: args.estado })
       const paquete = await Paquete.findById(args.id)
+
+      
+      if(args.estado === '___') {
+        return paquete
+      }
+
       paquete.estado = args.estado
       await paquete.save()
 
       pubsub.publish('PAQUETE_UPDATED', { paqueteUpdated: paquete })
 
       return paquete
+    },
+    realtimeUbicacion: async (parent, args, context) => {
+      const user = context.currentUser
+      if (!user) {
+        throw new Error('Authentication required')
+      }
+      // const unidad = await Unidad.findOne({ chofer_id: user._id })
+      // unidad.ubicacion = { latitud: args.latitud, longitud: args.longitud, altitud: args.altitud }
+      // await unidad.save()
+      // return unidad.ubicacion
+      
+      console.log('realtimeUbicacion', args)
+      return { latitud: args.latitud, longitud: args.longitud, user_id: user._id }
     },
   },
   Ruta: {
@@ -197,6 +224,13 @@ export const resolvers = {
       const ruta = await Ruta.findOne({ paquetes: { $elemMatch: { _id: root._id } } })
       return ruta
     },
+    nombre: async (root) => {
+      
+      return nombres[Math.floor(Math.random() * nombres.length)]
+    },
+    telefono: async (root) => {
+      return Math.floor(Math.random() * 900000000 + 100000000)
+    },
   },
   Subscription: {
     numberIncremented: {
@@ -205,5 +239,8 @@ export const resolvers = {
     paqueteUpdated: {
       subscribe: () => pubsub.asyncIterator(['PAQUETE_UPDATED']),
     },
+    // pantallaLCD:{
+    //   subscribe: () => pubsub.asyncIterator(['PANTALLA_LCD']),
+    // }
   },
 }

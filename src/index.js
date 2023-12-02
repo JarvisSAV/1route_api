@@ -55,9 +55,11 @@ await server.start()
 const whitlist = [
   'http://localhost:4000',
   'https://1route.aguiarveliz.com',
-  'http://localhost:3000',
+  'http://127.0.0.1:3000',
   'http://192.168.1.69:4000',
 ]
+
+app.post('/api/ping')
 
 app.use('/api/graphql', cors({
   origin: whitlist,
@@ -67,8 +69,11 @@ app.use('/api/graphql', cors({
 }), express.json(), expressMiddleware(server, {
   context: async ({ req, res }) => {
 
+
     const auth = req ? req.headers.authorization : null
     const reqCookies = req.headers.cookie
+
+    // console.log({auth})
 
     if (auth && auth.toLowerCase().startsWith('bearer ')) {
 
@@ -78,15 +83,17 @@ app.use('/api/graphql', cors({
 
       const currentUser = await User.findById(decodedToken.id)
 
+      console.log({ user: currentUser._id })
       return { currentUser, req, res }
     }
-
+    
     if (reqCookies && reqCookies.toLocaleLowerCase().startsWith('token=')) {
       const decodedToken = jwt.verify(
         reqCookies.substring(6), process.env.JWT_SECRET
-      )
-
-      const currentUser = await User.findById(decodedToken.id)
+        )
+        
+        const currentUser = await User.findById(decodedToken.id)
+        console.log({ user: currentUser._id })
 
       return { currentUser, req, res }
     }

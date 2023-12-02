@@ -51,6 +51,11 @@ export const typeDefs = `#graphql
       id: String!,
       estado: String!
     ): Paquete!
+    realtimeUbicacion(
+      latitud: Float!,
+      longitud: Float!,
+      altitud: Float
+    ): Coordenadas!
   },
 
   type User {
@@ -62,6 +67,7 @@ export const typeDefs = `#graphql
     telefono: Float
     estado: Boolean
     tipo: String
+    ubicacion: Coordenadas
   }
 
   type Token {
@@ -91,6 +97,8 @@ export const typeDefs = `#graphql
     coordenadas: Coordenadas
     estado: String
     ruta: Ruta
+    telefono: Float
+    nombre: String
   }
 
   type Coordenadas {
